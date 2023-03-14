@@ -1,6 +1,7 @@
 
 # genetic algorithm search for continuous function optimization
 import selection as selection
+import numpy as np
 from numpy.random import randint
 from numpy.random import rand
 
@@ -16,11 +17,20 @@ CrossoverFunc = Callable[[Genome, Genome], Tuple[Genome, Genome]]
 MutationFunc = Callable[[Genome], Genome]
 PrinterFunc = Callable[[Population, int, FitnessFunc], None]
 
-# objective function
-def objective(x):
-    return x[0]**2.0 + x[1]**2.0
 
-import numpy as np
+def regressor(x):
+    return output
+
+
+# objective function
+def objective(x, gamma):
+    for i in x:
+        if (50 > bin_to_int(i) > 2) & (check_sum(x) == 0):
+            return regressor(x)
+        else:
+            return min(regressor(x) - gamma*check_sum(x)**2, 0)
+
+
 def generate_genome(num_numbers, total_sum, min_val, max_val) -> Genome:
     numbers = []
     while len(numbers) < num_numbers - 1:
@@ -35,6 +45,7 @@ def generate_genome(num_numbers, total_sum, min_val, max_val) -> Genome:
         binary_list = [int(bit) for bit in binary.zfill(7)]  # Convert the binary string to a list of integers
         binary_numbers.append(binary_list)
     return binary_numbers
+
 
 def generate_genome2(num_numbers, total_sum, min_val, max_val) -> Genome:
     numbers = []
@@ -55,11 +66,13 @@ def int_to_bin(num):
     binary_list = [int(bit) for bit in binary.zfill(7)]  # Convert the binary string to a list of integers
     return binary_list
 
+
 def bin_to_int(num):
     s = ''
     for i in num:
         s += str(i)
     return int(s, 2)
+
 
 def check_sum(genome):
     tot = 0
@@ -109,25 +122,6 @@ def generate_population(size: int, num_numbers: int, total_sum: int, min_val: in
     return pop
 
 
-# decode bitstring to numbers
-def decode(bounds, n_bits, bitstring):
-    decoded = list()
-    largest = 2 ** n_bits
-    for i in range(len(bounds)):
-        # extract the substring
-        start, end = i * n_bits, (i * n_bits) + n_bits
-        substring = bitstring[start:end]
-        # convert bitstring to a string of chars
-        chars = ''.join([str(s) for s in substring])
-        # convert string to integer
-        integer = int(chars, 2)
-        # scale integer to desired range
-        value = bounds[i][0] + (integer / largest) * (bounds[i][1] - bounds[i][0])
-        #  store
-        decoded.append(value)
-    return decoded
-
-
 def selection_pair(population: Population, fitness_func: FitnessFunc) -> Population:
     return choices(
         population=population,
@@ -139,8 +133,9 @@ def selection_pair(population: Population, fitness_func: FitnessFunc) -> Populat
 def xnor(bit1, bit2):
     return ~(bit1 ^ bit2) & 1
 
+
 # crossover two parents to create two children
-def crossover(p1, p2, r_cross, method = ('1point', '2point', 'uniform', 'operator1', 'operator2'), alpha):
+def crossover(p1, p2, r_cross, alpha, method = ('1point', '2point', 'uniform', 'operator1', 'operator2')):
     # children are copies of parents by default
     c1, c2 = p1.copy(), p2.copy()
     # check for recombination
@@ -167,21 +162,20 @@ def crossover(p1, p2, r_cross, method = ('1point', '2point', 'uniform', 'operato
                     c1 += p2[i]
                     c2 += p1[i]
 
-
         elif method == 'operator1':
             for i in range(len(p1)):
-                c1 = int_to_bin(bin_to_int(p1[i]) ^ bin_to_int(p1[i])) #XOR
-                c2 = int_to_bin(bin_to_int(p1[i]) | bin_to_int(p2[i])) #OR
+                c1[i] = int_to_bin(bin_to_int(p1[i]) ^ bin_to_int(p2[i])) #XOR
+                c2[i] = int_to_bin(bin_to_int(p1[i]) | bin_to_int(p2[i])) #OR
         elif method == 'operator2':
             for i in range(len(p1)):
-                c1 = ~int_to_bin(bin_to_int(p1[i]) ^ bin_to_int(p1[i]))  #XAND
-                c2 = int_to_bin(bin_to_int(p1[i]) & bin_to_int(p2[i]))  #AND
+                c1[i] = int_to_bin(~(bin_to_int(p1[i]) ^ bin_to_int(p2[i]))) #XAND
+                c2[i] = int_to_bin(bin_to_int(p1[i]) & bin_to_int(p2[i]))  #AND
 
-        if ( abs(check_sum(c1)) > alpha) or ( abs(check_sum(c2)) > alpha):
+        if (abs(check_sum(c1)) > alpha) or ( abs(check_sum(c2)) > alpha):
             l = ['1point', '2point', 'uniform', 'operator1', 'operator2']
             l.remove(method)
             method = choices(l)
-            c1, c2 = crossover(p1, p2, r_cross, method, alpha)
+            [c1, c2] = crossover(p1, p2, r_cross, method, alpha)
 
         elif 0 < abs(check_sum(c1)) < alpha:
             c1 = repair(c1, method='greedy')
@@ -190,6 +184,7 @@ def crossover(p1, p2, r_cross, method = ('1point', '2point', 'uniform', 'operato
             c2 = repair(c2, method='greedy')
 
     return [c1, c2]
+
 
 def population_fitness(population: Population, fitness_func: FitnessFunc) -> int:
     return sum([fitness_func(genome) for genome in population])
