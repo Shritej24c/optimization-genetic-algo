@@ -177,26 +177,99 @@ def crossover(p1, p2, r_cross, method = ('1point', '2point', 'uniform', 'operato
                 c1 = ~int_to_bin(bin_to_int(p1[i]) ^ bin_to_int(p1[i]))  #XAND
                 c2 = int_to_bin(bin_to_int(p1[i]) & bin_to_int(p2[i]))  #AND
 
-        for i in [c1, c2]:
+        if ( abs(check_sum(c1)) > alpha) or ( abs(check_sum(c2)) > alpha):
+            l = ['1point', '2point', 'uniform', 'operator1', 'operator2']
+            l.remove(method)
+            method = choices(l)
+            c1, c2 = crossover(p1, p2, r_cross, method, alpha)
 
-            if abs(check_sum(i) ) > alpha:
-                l = ['1point', '2point', 'uniform', 'operator1', 'operator2']
-                l.remove(method)
-                method = choices(l)
-                c1, c2 = crossover(p1, p2, r_cross, method, alpha)
-            elif 0< abs(check_sum(i) ) < alpha:
-                i = repair(i, method='greedy')
+        elif 0 < abs(check_sum(c1)) < alpha:
+            c1 = repair(c1, method='greedy')
 
+        elif 0 < abs(check_sum(c2)) < alpha:
+            c2 = repair(c2, method='greedy')
 
     return [c1, c2]
 
+def population_fitness(population: Population, fitness_func: FitnessFunc) -> int:
+    return sum([fitness_func(genome) for genome in population])
 
-def mutation(genome: Genome, num: int = 1, probability: float = 0.5) -> Genome:
+
+def sort_population(population: Population, fitness_func: FitnessFunc) -> Population:
+    return sorted(population, key=fitness_func, reverse=True)
+
+
+def genome_to_string(genome: Genome) -> str:
+    return "".join(map(str, genome))
+
+
+def mutation(genome: Genome, alpha, num: int = 1, probability: float = 0.5) -> Genome:
     for _ in range(num):
         index = randrange(len(genome))
         genome[index] = genome[index] if random() > probability else abs(genome[index] - 1)
+
+    if abs(check_sum(genome)) > alpha  :
+        genome = mutation(genome, alpha, num, probability)
+
+    elif 0 < abs(check_sum(genome)) < alpha:
+        genome = repair(genome, method='greedy')
+
     return genome
 
+
+def print_stats(population: Population, generation_id: int, fitness_func: FitnessFunc):
+    print("GENERATION %02d" % generation_id)
+    print("=============")
+    print("Population: [%s]" % ", ".join([genome_to_string(gene) for gene in population]))
+    print("Avg. Fitness: %f" % (population_fitness(population, fitness_func) / len(population)))
+    sorted_population = sort_population(population, fitness_func)
+    print(
+        "Best: %s (%f)" % (genome_to_string(sorted_population[0]), fitness_func(sorted_population[0])))
+    print("Worst: %s (%f)" % (genome_to_string(sorted_population[-1]),
+                              fitness_func(sorted_population[-1])))
+    print("")
+
+    return sorted_population[0]
+
+
+def run_evolution(
+        populate_func: PopulateFunc,
+        fitness_func: FitnessFunc,
+        fitness_limit: int,
+        selection_func: SelectionFunc = selection_pair,
+        crossover_func: CrossoverFunc = crossover,
+        mutation_func: MutationFunc = mutation,
+        generation_limit: int = 100,
+        printer: Optional[PrinterFunc] = None) \
+        -> Tuple[Population, int]:
+    population = populate_func()
+
+    for i in range(generation_limit):
+        population = sorted(population, key=lambda genome: fitness_func(genome), reverse=True)
+
+        if printer is not None:
+            printer(population, i, fitness_func)
+
+        if fitness_func(population[0]) >= fitness_limit:
+            break
+
+        next_generation = population[0:2]
+
+        for j in range(int(len(population) / 2) - 1):
+            parents = selection_func(population, fitness_func)
+            offspring_a, offspring_b = crossover_func(parents[0], parents[1])
+            offspring_a = mutation_func(offspring_a)
+            offspring_b = mutation_func(offspring_b)
+            next_generation += [offspring_a, offspring_b]
+
+        population = next_generation
+
+    return population, i
+
+
+
+
+'''
 
 # genetic algorithm
 def genetic_algorithm(objective, bounds, n_bits, n_iter, n_pop, r_cross, r_mut):
@@ -259,3 +332,5 @@ print('Done!')
 decoded = decode(bounds, n_bits, best)
 print('f(%s) = %f' % (decoded, score))
 
+
+'''
