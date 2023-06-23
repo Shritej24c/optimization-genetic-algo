@@ -6,7 +6,27 @@ The advertising industry is vast… The numbers say it all. Statista has project
 
 **Problem Statement**
 
-Given a marketing budget of $1 Million, how do you optimally allocate this budget across three digital channels (search, programmatic, social) and five audience types to maximize campaign returns? Following are the business constraints that need to be accounted for. Spend allocation on each channel and audience type should not be more than 50% of the budget and no less than 2% of the budget.
+1. $1M of budget for Ad Campaign
+2. Distributed across 3 Digital Channels and 5 Audience types 
+3. Optimize the Budget while Maximizing Digital Engagement
+4. Business Constraint - Minimum of 2% and a maximum of 50% Total Spend 
+
+**Data**
+
+1. 5 Ad Campaigns consisting of $ Spend for 375000 ads across different Channels, Audiences, and Content for 90 days
+2. Sucess Metrics - Impressions, Clicks, Video Views, Web Visits, Social Likes
+3. Digital Engagement - Click-through Rate = Clicks/Impressions
+
+**Formulation**
+
+𝐼𝑚𝑝𝑟𝑒𝑠𝑠𝑖𝑜𝑛𝑠= 𝛽_0+ 𝛽_1 𝐶ℎ𝑎𝑛𝑛𝑒𝑙+ 𝛽_2 𝐴𝑢𝑑𝑖𝑒𝑛𝑐𝑒+ 𝛽_3 𝑆𝑝𝑒𝑛𝑑*
+𝐶𝑙𝑖𝑐𝑘𝑠= 𝛽_0+ 𝛽_1 𝐶ℎ𝑎𝑛𝑛𝑒𝑙+ 𝛽_2 𝐴𝑢𝑑𝑖𝑒𝑛𝑐𝑒+ 𝛽_3 𝑆𝑝𝑒𝑛𝑑*
+𝐶𝑇𝑅_𝑖𝑗=(𝑃𝑟𝑒𝑑𝑖𝑐𝑡𝑒𝑑 𝐶𝑙𝑖𝑐𝑘𝑠)/(𝑃𝑟𝑒𝑑𝑖𝑐𝑡𝑒𝑑 𝐼𝑚𝑝𝑟𝑒𝑠𝑠𝑖𝑜𝑛𝑠)=𝑓(𝑆𝑝𝑒𝑛𝑑_𝑖𝑗 )/𝑔(𝑆𝑝𝑒𝑛𝑑_𝑖𝑗 ) =ℎ(𝑆𝑝𝑒𝑛𝑑_𝑖𝑗 )
+
+![image](https://github.com/Shritej24c/HPE-DA/assets/46397283/a67ac2d5-75d9-4320-9e3b-149bee8809e8)
+
+
+
 
 
 
