@@ -27,6 +27,7 @@ The advertising industry is vast… The numbers say it all. Statista has project
 
 
 
+**Genetic Algorithms**
 
 
 
